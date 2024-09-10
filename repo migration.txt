@@ -1,0 +1,66 @@
+Git to git ADO Repo migration
+.....................................................
+
+
+
+$sourceOrg = "http://bcdevtfs:8080/tfs/DefaultCollection"
+$sourceProject = "WebServices"
+$sourceRepo = "SSO"
+$targetOrg = "https://dev.azure.com/NGanduri"
+$targetProject = "Test-Project"
+$targetRepo = "SSO"
+$pat = "*******"
+
+$tempDir = "C:\Users\Hemanth Kumar\Documents\temp"
+
+git clone --mirror "$sourceOrg/$sourceProject/_git/$sourceRepo" "$tempDir\$sourceRepo" 
+
+cd "$tempDir\$sourceRepo"
+
+git remote add target "$targetOrg/$targetProject/_git/$targetRepo"
+
+$targetPass = "****"
+$base64AuthInfo = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($targetPass)"))
+
+git push target --mirror
+
+..................................................................
+tfvc to git ADO migration
+.................................
+# Variables
+$tfvcUrl = "http://bcdevtfs:8080/tfs/DefaultCollection"
+$tfvcRepoName = "$/Tableau"
+#use this tfvcProjectName if the TFVC project having more branches
+#$tfvcProjectName = "Tableau"
+$Credential = Get-Credential
+
+$gitUrl = "https://dev.azure.com/NGanduri"
+$gitProjectName = "Test-Project"
+$gitRepoName = "repo2"
+
+#storing in system TEMP directory we can change directory path as per needed
+$tempDir = "$env:TEMP"
+cd $tempDir
+mkdir $tfvcRepoName
+cd $tfvcRepoName
+
+#alternatively we can use credentials
+#git config --global user.name "<username>"
+#git config --global user.email <email>
+
+#use this if there's no branch in TFVC Repo
+#Ex: git tfs clone http://bcdevtfs:8080/tfs/DefaultCollection $/Tableau .
+#cloning Repo by prompting for credentials 
+git tfs clone $tfvcUrl $tfvcRepoName -username $Credential.UserName -password $Credential.Password .
+
+#use this if there are multiple branches in TFVC Repo
+#Ex: git tfs clone http://bcdevtfs:8080/tfs/DefaultCollection $/EBridge/EBridge . --branches=all
+#git tfs clone $tfvcUrl $tfvcRepoName/$tfvcProjectName -username $Credential.UserName -password $Credential.Password . --branches=all
+
+git remote add origin "$gitUrl/$gitProjectName/_git/$gitRepoName"
+git push -u origin --all
+
+
+
+
+
